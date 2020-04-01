@@ -1,0 +1,17 @@
+version: "3.7"
+networks: 
+    tic_net: 
+      driver: bridge
+
+services:
+  backend:
+    image: webdevops/php-nginx-dev:7.3
+    ports:
+      - "8778:80"
+    volumes:
+      - ./api:/app  
+    environment: 
+      WEB_DOCUMENT_ROOT: /app/public  
+      
+    networks:
+      - tic_net
