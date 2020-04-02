@@ -5,13 +5,25 @@ networks:
 
 services:
   backend:
-    image: webdevops/php-nginx-dev:7.3
+    build:
+      context: ./api
+      dockerfile: Dockerfile  
+    image: zkosta/api-tic-tac  
     ports:
       - "8778:80"
     volumes:
-      - ./api:/app  
-    environment: 
-      WEB_DOCUMENT_ROOT: /app/public  
-      
+      - ./api:/app          
     networks:
       - tic_net
+      
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile  
+    image: zkosta/tic-tac  
+    ports:
+      - "8080:80"
+    links:
+      - backend
+    networks:
+     - tic_net  
