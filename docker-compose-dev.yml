@@ -10,9 +10,14 @@ services:
       dockerfile: Dockerfile  
     image: zkosta/api-tic-tac  
     ports:
-      - "8778:80" 
+      - "8778:80"
+    environment:
+      XDEBUG_REMOTE_HOST: 172.30.0.1   
+    volumes:
+      - ./api:/srv/app          
     networks:
-      - tic_net      
+      - tic_net
+      
   frontend:
     build:
       context: ./frontend
