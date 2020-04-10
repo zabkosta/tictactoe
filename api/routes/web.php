@@ -15,7 +15,9 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
+$router->get('/test', 'Controller@test');
+
 $router->group(['prefix' => 'game'], static function () use ($router) {
-    $router->get('/create', 'Controller@create');
+    $router->put('/move', 'Controller@move');
 });
 

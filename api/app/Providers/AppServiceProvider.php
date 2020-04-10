@@ -2,10 +2,17 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use App\Contracts\GameBuilderInterface;
+use App\Services\TicTacToeBuilder;
 
 class AppServiceProvider extends ServiceProvider
 {
+
+    public $bindings = [
+        TicTacToeBuilder::class => TicTacToeBuilder::class,
+    ];
+
+
     /**
      * Register any application services.
      *

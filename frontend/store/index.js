@@ -1,3 +1,4 @@
+import Vue from 'vue'
 
 export const state = () => {
   return {
@@ -10,10 +11,7 @@ export const state = () => {
     },
     boardSizes: [
       {label: '3X3', val: 3},
-      {label: '4X4', val: 4},
-      {label: '5X4', val: 5},
-      {label: '6X6', val: 6}
-    ],
+      ],
     // size of square, px
     boxSize: 160
 }
@@ -31,17 +29,36 @@ export const mutations = {
   },
   setGameID(state){
     state.game.gameID =  Math.floor(Math.random() * Math.floor(999999));
+    state.game.gameState = 'R';
+  },
+  setGameState(state, gameState){
+    state.game.gameState = gameState;
   },
   setMark(state, index){
 
     if (state.game.gameBoard[index] === undefined){
-      state.game.gameBoard[index] = state.game.userPlayer;
+     // state.game.gameBoard[index] = state.game.userPlayer;
+      Vue.set(state.game.gameBoard, index, state.game.userPlayer)
     }
+  },
+  setAImark(state, data){
+    if (state.game.gameBoard[data['index']] === undefined){
+     // state.game.gameBoard[data['index']] = data['player'];
+      Vue.set(state.game.gameBoard, data['index'], data['player'])
+    }
+  },
+  restartGame(state){
+
+    state.game.gameID =  Math.floor(Math.random() * Math.floor(999999));
+    state.game.gameState = 'R';
+    state.game.gameBoard = new Array(state.game.gameSize*state.game.gameSize);
+
   }
 
 }
 
 export const getters = {
+
 
 }
 
@@ -53,7 +70,8 @@ export const actions = {
      this.$axios.put('/game/move', {game:state.game})
       .then((res) => {
 
-       // commit('setPosts', res.data.data.posts);
+        commit('setGameState',res.data.gameState);
+        commit('setAImark', {index:res.data.nextMove, player:res.data.aiPlayer});
 
         console.log(res);
 

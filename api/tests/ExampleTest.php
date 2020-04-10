@@ -1,5 +1,6 @@
 <?php
 
+use App\Entity\Game;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
@@ -12,10 +13,18 @@ class ExampleTest extends TestCase
      */
     public function testExample()
     {
-        $this->get('/');
 
-        $this->assertEquals(
-            $this->app->version(), $this->response->getContent()
-        );
+
+        $validatedData =  [
+            'gameID' => 1,
+            'gameSize' => 3,
+            'gameBoard' => ['X',null,null,null,null,null,null,null,null],
+            'game.gameState' => 'RUN',
+            'game.userPlayer' => 'X'
+            ];
+
+
+
+
     }
 }

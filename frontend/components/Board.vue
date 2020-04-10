@@ -33,7 +33,7 @@
 
 <script>
 
-  import {mapState} from 'vuex'
+  import {mapState, mapGetters} from 'vuex'
 
   export default {
     name: "Board",
@@ -46,24 +46,26 @@
       ...mapState({
 
         gameSize: state => state.game.gameSize,
+        gameState:  state => state.game.gameState,
         userPlayer: state => state.game.userPlayer,
-        gameBoard: state => state.game.gameBoard,
-        boxSize: state => state.boxSize
+        boxSize: state => state.boxSize,
+        gameBoard: state => state.game.gameBoard
       }),
+
 
     },
 
-
-
     methods: {
       setMark: function (index) {
-        this.$store.commit('setMark', index);
-        this.$forceUpdate();
-        // activate preloader
-        this.loading = true;
 
-        this.$store.dispatch('fetchNextMove');
-
+        if ( (this.gameBoard[index] === undefined) &&
+             (this.gameState !== 'F')
+           ){
+          this.$store.commit('setMark', index);
+          // activate preloader
+          //this.loading = true;
+          this.$store.dispatch('fetchNextMove');
+        }
       }
     }
 

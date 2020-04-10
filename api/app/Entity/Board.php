@@ -4,104 +4,220 @@ namespace App\Entity;
 
 class Board {
 
+    public const X_PLAYER = 'X';
+    public const O_PLAYER = 'O';
+
     /**
-     *  Board dimension, default 3x3
+     *  Board dimension
      * @var int
      */
-    private $dimension;
+    private $gameSize;
 
-	private $board = [];
+    /**
+     * Represent board as one-dimension array
+     * @var array
+     */
+	private $gameBoard;
 
-	public function __construct($dimension = 3)
+	private $maximizer;
+	private $minimizer;
+
+
+	public function __construct(array $board , int $size)
     {
-        $this->dimension = $dimension;
 
-        for ($i = 0; $i < $dimension; $i++) {
-            for ($j = 0; $j < $dimension; $j++) {
-                $this->board[$i][$j] = NULL;
+        $this->gameSize = $size;
+        $this->gameBoard = $board;
+    }
+
+    public function move(int $inx):void
+    {
+            $this->gameBoard[$inx]  = $this->maximizer;
+
+    }
+
+
+    public function findBestMoveFor($player): int
+    {
+        // init players
+        $this->setPlayers($player);
+
+
+        $bestCost = -1000;
+        $bestIndex = -1;
+
+        foreach ($this->getAvailableMove() as $index) {
+
+            $this->gameBoard[$index] = $this->maximizer;
+
+            $moveCost = $this->minimax(0, false);
+
+            $this->gameBoard[$index] = null;
+
+            if ($moveCost > $bestCost)
+            {
+                $bestIndex = $index;
+                $bestCost = $moveCost;
             }
+
         }
+
+
+        return $bestIndex;
     }
 
-    public function isPlayerWin(string $player):bool
+
+
+    private function setPlayers(string $maxPlayer):void
     {
-        // check major diagonal
-        $d1 = False;
-        for ($i = 0, $j=0; $i < $this->dimension; $i++, $j++) {
-            $d1 = $d1 &&  ($this->board[$i][$j] === $player);
-        }
-
-        // check minor diagonal
-        $d2 = False;
-        for ($i = 0, $j=0; $i < $this->dimension; $i++, $j--) {
-            $d2 = $d2 &&  ($this->board[$i][$j] === $player);
-        }
-
-
-        // check horizontal lines function
-        // returns True if any line completely filled with given player mark ( 'X' or 'O')
-
-        $lineCheck = static function(array $board, $player):bool
-                {
-                    $res = False;
-                    foreach ($board as $line){
-                        // $field is an array which represents horizontal
-                        //check given line
-                        $lineResult = array_reduce($line, static function ($carry, $value) use($player){
-                            return $carry && ($value === $player);
-                        }, False);
-                        // if any line will True, final result also will be True
-                        $res = $res && $lineResult;
-                    }
-                    return $res;
-                };
-
-        //check horizontal
-        $d3 = $lineCheck($this->board, $player);
-
-        // check verticals
-        // transponce array
-        $transponded = array_map(NULL, ...$this->board);
-        $d4 = $lineCheck($transponded , $player);
-
-        return $d1 || $d2 || $d3 || $d4;
+        $this->maximizer = $maxPlayer;
+        $this->minimizer =  $maxPlayer === self::X_PLAYER ? self::O_PLAYER : self::X_PLAYER;
     }
-
-
-
-	public function makeMove(string $player){
-
-	    $index = $this->getBestMove($player);
-	    $this->board[$index] = $player;
-	    return $this;
-    }
-
-    public function getBoard():array
-    {
-
-        return $this->board;
-
-    }
-
 
 
     /**
      *  Return array of available fields
      * @return array
      */
-    private function  findAvailableFields()
-	{
-		return array_filter($this->board, function($value) {
-            return $value !== self::O_PLAYER && $value !== self::X_PLAYER;
-        });
-	}
-
-	private function getBestMove($player):int
+    private function  getAvailableMove():array
     {
 
-
+        return array_keys($this->gameBoard, null);
 
     }
+
+
+    private function minimax(int $depth, bool $isMaximizer):int
+    {
+
+        $score = $this->evaluateBoard();
+
+
+        if ($score === 10){
+            return $score;
+        }
+
+        if ($score === -10){
+            return $score;
+        }
+
+        $availableMoves = $this->getAvailableMove();
+
+        if (empty($availableMoves))
+        {
+            return 0;
+        }
+
+        if ($isMaximizer){
+
+               $best = -1000;
+
+            // Traverse all available cells
+              foreach ( $availableMoves as $minx){
+
+                  // Make the move
+                  $this->gameBoard[$minx] = $this->maximizer;
+                  $value = $this->minimax($depth+1, !$isMaximizer);
+                  if ($value > $best){
+                      $best = $value;
+                  }
+                  $this->gameBoard[$minx] = null;
+
+              }
+
+             return $best;
+        }
+
+        $best = 1000;
+
+        // Traverse all cells
+        foreach ( $availableMoves as $minx) {
+
+            // Make the move
+            $this->gameBoard[$minx] = $this->minimizer;
+            // dd($this->gameBoard);
+            $value = $this->minimax($depth + 1, !$isMaximizer);
+
+            if ($value < $best) {
+                $best = $value;
+            }
+
+            $this->gameBoard[$minx] = null;
+        }
+        return $best;
+    }
+
+
+    public function evaluateBoard():int
+    {
+
+        if ($this->isPlayerWin($this->maximizer)) {
+            return 10;
+        }
+
+        if ($this->isPlayerWin($this->minimizer)) {
+            return -10;
+        }
+
+        return 0;
+
+    }
+
+
+    private function isPlayerWin(string $player):bool
+    {
+        // check major diagonal
+        $d1 = true;
+        for ($i = 0; $i < $this->gameSize; $i++) {
+            $d1 = $d1 &&  ($this->gameBoard[$i*$this->gameSize + $i] === $player);
+        }
+        // bypass further checking if win
+        if ($d1) {
+            return $d1;
+        }
+
+        // check minor diagonal
+        $d2 = true;
+        for ($i = 0; $i < $this->gameSize; $i++) {
+            $inx = $i*$this->gameSize + $this->gameSize - 1 - $i;
+            $d2 = $d2 &&  ($this->gameBoard[$inx] === $player);
+        }
+        // bypass further checking if win
+        if ($d2) {
+            return $d2;
+        }
+
+
+
+        $d3 = false;
+        for ($i = 0; $i < $this->gameSize; $i++) {
+
+            $line = array_slice($this->gameBoard,$i*$this->gameSize, $this->gameSize);
+            $lineResult = array_reduce($line, static function ($carry, $value) use($player){
+                return $carry && ($value === $player);
+            }, true);
+            $d3 = $d3 || $lineResult;
+        }
+        // bypass further checking if win
+        if ($d3) {
+            return $d3;
+        }
+
+
+        $d4 = false;
+        for ($i = 0; $i < $this->gameSize; $i++) {
+          $lineResult = true;
+          for ($j=$i; $j < $this->gameSize*$this->gameSize; $j += $this->gameSize){
+
+              $lineResult = $lineResult && ($this->gameBoard[$j] === $player);
+         }
+          $d4 = $d4 || $lineResult;
+       }
+
+
+        return $d4;
+    }
+
 
 
 

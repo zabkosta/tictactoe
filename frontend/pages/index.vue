@@ -13,6 +13,17 @@
 
         <Board v-if="gameID"/>
 
+      <v-spacer  class="mt-6"/>
+      <v-btn
+        large
+        block
+        v-if="gameState ==='F'"
+        color="primary"
+        @click="startNew"
+      >
+        Start New Game
+      </v-btn>
+
     </v-flex>
   </v-layout>
 </template>
@@ -31,9 +42,19 @@ export default {
   computed: {
     ...mapState({
       gameID: state => state.game.gameID,
-    }),
+      gameState:  state => state.game.gameState,
 
+    }),
   },
+  methods: {
+    startNew: function (index) {
+
+      console.log('start new')
+      this.$store.commit('restartGame');
+
+
+    }
+  }
 
 }
 </script>
